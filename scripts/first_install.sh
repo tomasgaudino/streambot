@@ -29,6 +29,12 @@ mkdir hummingbot_conf > /dev/null
 mkdir hummingbot_files/hummingbot_logs  > /dev/null
 mkdir hummingbot_files/hummingbot_data  > /dev/null
 mkdir hummingbot_files/hummingbot_scripts  > /dev/null
+
+# 3) Create paths local folder
+mkdir data/paths > /dev/null
+cat > data/paths/paths.csv
+    "path"
+    $(pwd)
 echo "Folders created ✅"
 
 # 3) Launch a new instance of hummingbot

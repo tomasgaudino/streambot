@@ -20,12 +20,8 @@ if st.button("First install"):
     if os.path.isfile(paths_file_path):
         with open(paths_file_path, 'rt') as f:
             reader = csv.reader(f, delimiter=',')
-            print(reader)
             for row in reader:
-                #print(row)
                 for field in row:
-                    print(field)
-                    print(os.getcwd())
                     if field == os.getcwd():
                         st.write('Hummingbots already installed in directory!')
     else:        
