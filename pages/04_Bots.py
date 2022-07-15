@@ -9,7 +9,7 @@ paths_file_path = os.getcwd()+'/data/bots/bots_sample.csv'
 st.title("Manage your bots!")
 
 # Get docker df
-def docker_display_stdout():
+def dockerps_to_dataframe():
     # Get docker output formatted as JSON
     result = subprocess.check_output(['docker','ps','-a','--format',"'{{json .}}'"])
 
@@ -26,51 +26,67 @@ def docker_display_stdout():
     return df
 
 # Load to dataframe
-bots = docker_display_stdout()
+bots = dockerps_to_dataframe()
 
-# Export table to page
-st.table(bots.drop(columns=["Command","Labels","Mounts"]))
+if bots.empty:
+    st.text("Ups! Apparently there are no bots here. Ready to launch your first bot?")
+    if st.button("Launch new bot"):
+        subprocess.call(os.getcwd()+'/scripts/new_bot.sh')
+else:
+    # Export table to page
+    st.table(bots.drop(columns=["Command","Labels","Mounts"]))
 
-# Bots gallery with action buttons
-for index, row in bots.iterrows():
-    if row['State'] == "exited":
-        temp_icon = "🛑"
-    elif row['State'] == "running":
-        temp_icon = "💸"
+    # Bots gallery with action buttons
+    for index, row in bots.iterrows():
+        if row['State'] == "exited":
+            temp_icon = "🛑"
+        elif row['State'] == "running":
+            temp_icon = "💸"
 
-    with st.expander(label=temp_icon+"   "+row['Names'], expanded=False):
+        with st.expander(label=temp_icon+"   "+row['Names'], expanded=False):
 
-        col1, col2, col3 = st.columns([1,1,1])
+            col1, col2, col3 = st.columns([1,1,1])
+            # Start/stop button
+            with col1: 
+                if row['State'] == "exited":
+                    if st.button('Start'):
+                        result = subprocess.Popen(['docker','start',row['Names']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                        if result.stderr == None:
+                            st.text('Bot started!')
+                elif row['State'] == "running":
+                    if st.button('Stop'):
+                        result = subprocess.Popen(['docker','stop',row['ID']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                        if result.stderr == None:
+                            st.text('Bot stopped')
 
-        with col1: 
-            if row['State'] == "exited":
-                if st.button('Start'):
-                    result = subprocess.Popen(['docker','start',row['Names']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    if result.stderr == None:
-                        st.text('Bot started!')
-            elif row['State'] == "running":
-                if st.button('Stop'):
-                    result = subprocess.Popen(['docker','stop',row['Names']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    if result.stderr == None:
-                        st.text('Bot stopped')
-        with col2: 
-            if st.button('Export logs'):
-                st.text('Aloha logs')
+            with col2: 
+                if st.button('Export logs'):
+                    st.text('Aloha logs')
 
-        with col3: 
-            if st.button('Change strategy'):
-                st.text('Aloha strategy')
+            # Change strategy button
+            with col3: 
+                if st.button('Change strategy'):
+                    command = os.getcwd()+'/scripts/change_load_strategy.sh'
+                    path = os.getcwd()
+                    subprocess.run([
+                        command,
+                        path,
+                        str(row['Names']),
+                        'pure_market_making',
+                        'conf_pure_mm_1.yml',
+                        'admin',
+                        str(row['State'])])
 
-        col1, col2, col3 = st.columns([1,1,1])
+            col1, col2, col3 = st.columns([1,1,1])
 
-        with col1: 
-            if st.button('Go dashboard'):
-                st.text('Aloha dashboard')
+            with col1: 
+                if st.button('Go dashboard'):
+                    st.text('Aloha dashboard')
 
-        with col2: 
-            if st.button('Remove'):
-                st.text('Aloha remove')
+            with col2: 
+                if st.button('Remove'):
+                    st.text('Aloha remove')
 
-        with col3: 
-            if st.button('Change wallet'):
-                st.text('Aloha wallet')
+            with col3: 
+                if st.button('Change wallet'):
+                    st.text('Aloha wallet')

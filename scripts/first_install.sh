@@ -40,7 +40,7 @@ echo "Folders created ✅"
 # 3) Launch a new instance of hummingbot
 sudo docker run -d -it \
 --network host \
---name hummingbot-instance \
+--name hummingbot \
 --mount "type=bind,source=$(pwd)/hummingbot_conf,destination=/conf/" \
 --mount "type=bind,source=$(pwd)/hummingbot_files/hummingbot_logs,destination=/logs/" \
 --mount "type=bind,source=$(pwd)/hummingbot_files/hummingbot_data,destination=/data/" \
